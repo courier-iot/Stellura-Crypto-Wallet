@@ -6,6 +6,8 @@ import wallet.core.jni.HDWallet
 import wallet.core.jni.Hash
 import wallet.core.jni.Mnemonic
 import wallet.core.jni.PrivateKey
+import com.example.stellariteminer.KeySigner
+import com.stellura.wallet.stellarite.StelCoin
 
 /**
  * Self-custody wallet. One BIP-39 recovery phrase derives keys for every supported chain
@@ -57,5 +59,28 @@ class WalletManager(private val store: SecureStore) {
 
     fun ethPrivateKey(): PrivateKey = hd().getKeyForCoin(CoinType.ETHEREUM)
 
+    /**
+     * The Stellarite test coins' key: ONE secp256k1 key for both Pulsarite and Nebulite (scout
+     * rewards are paid to the other coin's address of the same key). Derived from the recovery
+     * phrase on its own path, so it shares nothing with the Bitcoin/Ethereum/Solana keys.
+     * Only call after the user has unlocked the app; use it and drop it.
+     */
+    fun stellariteSigner(): KeySigner {
+        val raw = hd().getKey(CoinType.BITCOIN, STELLARITE_PATH).data()   // BITCOIN = secp256k1 BIP-32 derivation
+        return KeySigner(raw.joinToString("") { "%02x".format(it.toInt() and 0xff) })
+    }
+
+    /** Public Stellarite address (plsr… or nblt…) of [stellariteSigner]'s key. */
+    fun stellariteAddress(coin: StelCoin): String = stellariteSigner().address(coin.prefix)
+
     fun deleteWallet() = store.delete(SecureStore.SEED)
+
+    companion object {
+        /**
+         * BIP-44 path for the Stellarite coins. 7827 is not a registered SLIP-44 coin type
+         * (checked against satoshilabs/slips, November 2026), so no other wallet derives this key
+         * from the same phrase. Register it before a public launch.
+         */
+        const val STELLARITE_PATH = "m/44'/7827'/0'/0/0"
+    }
 }

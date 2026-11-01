@@ -88,6 +88,7 @@ fun WalletsScreen(vm: AppViewModel, nav: NavHostController) {
                 }
             }
         }
+        StellariteSection(vm, nav)
         VSpace(6.dp)
         Text(
             "More chains (Polygon, Base, Arbitrum, BNB Chain, XRP, Cardano, Dogecoin and the rest of the top 100) " +

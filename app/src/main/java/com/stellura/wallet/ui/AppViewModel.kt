@@ -7,6 +7,10 @@ import com.stellura.wallet.StelluraApp
 import com.stellura.wallet.data.AppSettings
 import com.stellura.wallet.data.CoinMarket
 import com.stellura.wallet.wallet.Chain
+import com.stellura.wallet.stellarite.StelAccount
+import com.stellura.wallet.stellarite.StelCoin
+import com.stellura.wallet.stellarite.StelMiner
+import com.example.stellariteminer.SoloBackend
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,6 +40,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _balances = MutableStateFlow<Map<Chain, BigInteger>>(emptyMap())
     val balances = _balances.asStateFlow()
 
+    /** Stellarite test coins: addresses, node accounts and the last error per coin. */
+    private val _stelAddresses = MutableStateFlow<Map<StelCoin, String>>(emptyMap())
+    val stelAddresses = _stelAddresses.asStateFlow()
+    private val _stelAccounts = MutableStateFlow<Map<StelCoin, StelAccount>>(emptyMap())
+    val stelAccounts = _stelAccounts.asStateFlow()
+    private val _stelErrors = MutableStateFlow<Map<StelCoin, String>>(emptyMap())
+    val stelErrors = _stelErrors.asStateFlow()
+    /** Balances on this phone's solo chains (blocks mined in solo mode). */
+    private val _stelSolo = MutableStateFlow<Map<StelCoin, Long>>(emptyMap())
+    val stelSolo = _stelSolo.asStateFlow()
+
     private val _fxTick = MutableStateFlow(0)
     val fxTick = _fxTick.asStateFlow()
 
@@ -54,7 +69,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (!app.wallet.hasWallet()) return@launch
         val addrs = withContext(Dispatchers.Default) { Chain.entries.associateWith { app.wallet.address(it) } }
         _addresses.value = addrs
+        val stel = withContext(Dispatchers.Default) { StelCoin.entries.associateWith { app.wallet.stellariteAddress(it) } }
+        stel.forEach { (c, a) -> app.stelSettings.setAddress(c, a) }   // public only: lets mining run while locked
+        _stelAddresses.value = stel
         refreshBalances()
+    }
+
+    fun refreshStellarite() = viewModelScope.launch {
+        val acc = HashMap<StelCoin, StelAccount>(); val errs = HashMap<StelCoin, String>(); val solo = HashMap<StelCoin, Long>()
+        _stelAddresses.value.forEach { (c, a) ->
+            if (app.stelSettings.node(c).isNotBlank()) {
+                runCatching { app.stel.account(c, a) }.onSuccess { acc[c] = it }.onFailure { errs[c] = it.message ?: "Node unreachable" }
+            }
+            runCatching { withContext(Dispatchers.IO) { SoloBackend.chainFor(app, c.profile).balance(a) } }.onSuccess { solo[c] = it }
+        }
+        _stelAccounts.value = acc; _stelErrors.value = errs; _stelSolo.value = solo
     }
 
     fun refreshBalances() = viewModelScope.launch {
@@ -63,6 +92,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             runCatching { app.chains.balance(chain, addr) }.onSuccess { out[chain] = it }
         }
         _balances.value = out
+        refreshStellarite()
     }
 
     /** Falls back to USD if exchange rates haven't loaded, so we never mislabel a value. */
@@ -76,9 +106,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Removes the wallet and every setting from this phone. Irreversible without a backup. */
     fun eraseEverything(onDone: () -> Unit) = viewModelScope.launch {
+        if (StelMiner.status.value.running) { StelMiner.stop(app); kotlinx.coroutines.delay(2000) }  // let the miner finish first
+        app.stelSettings.clear()
+        StelCoin.entries.forEach { SoloBackend.delete(app, it.profile) }   // Stellarite solo chains
         app.wallet.deleteWallet(); app.pin.clear(); app.totp.disable()
         app.secureStore.wipeAll(); app.settings.clearAll()
         _addresses.value = emptyMap(); _balances.value = emptyMap()
+        _stelAddresses.value = emptyMap(); _stelAccounts.value = emptyMap(); _stelSolo.value = emptyMap()
         app.lock.lockNow()
         onDone()
     }

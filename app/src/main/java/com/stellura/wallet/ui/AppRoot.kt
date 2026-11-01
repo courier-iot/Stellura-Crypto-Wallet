@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material3.Icon
@@ -37,6 +38,9 @@ import com.stellura.wallet.ui.screens.HomeScreen
 import com.stellura.wallet.ui.screens.ImportPhraseScreen
 import com.stellura.wallet.ui.screens.LockScreen
 import com.stellura.wallet.ui.screens.MarketsScreen
+import com.stellura.wallet.ui.screens.MineScreen
+import com.stellura.wallet.ui.screens.StelCoinScreen
+import com.stellura.wallet.ui.screens.StelSendScreen
 import com.stellura.wallet.ui.screens.ReceiveScreen
 import com.stellura.wallet.ui.screens.RestoreBackupScreen
 import com.stellura.wallet.ui.screens.SendScreen
@@ -53,8 +57,11 @@ object Routes {
     const val RESTORE = "restore"; const val SET_PIN = "setpin"
     const val HOME = "home"; const val MARKETS = "markets"; const val WALLETS = "wallets"; const val SETTINGS = "settings"
     const val COIN = "coin/{id}"; const val RECEIVE = "receive/{chain}"; const val SEND = "send"
+    const val MINE = "mine"; const val STEL = "stel/{coin}"; const val STEL_SEND = "stelsend/{coin}"
     fun coin(id: String) = "coin/$id"
     fun receive(chain: String) = "receive/$chain"
+    fun stel(coin: String) = "stel/$coin"
+    fun stelSend(coin: String) = "stelsend/$coin"
 }
 
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
@@ -63,6 +70,7 @@ private val tabs = listOf(
     Tab(Routes.HOME, "Home", Icons.Filled.Home),
     Tab(Routes.MARKETS, "Markets", Icons.AutoMirrored.Filled.ShowChart),
     Tab(Routes.WALLETS, "Wallets", Icons.Filled.AccountBalanceWallet),
+    Tab(Routes.MINE, "Mine", Icons.Filled.Memory),
     Tab(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
 )
 
@@ -120,6 +128,13 @@ private fun MainNav(vm: AppViewModel, activity: FragmentActivity) {
                     ReceiveScreen(vm, nav, it.arguments?.getString("chain").orEmpty())
                 }
                 composable(Routes.SEND) { SendScreen(vm, nav) }
+                composable(Routes.MINE) { MineScreen(vm, nav) }
+                composable(Routes.STEL, arguments = listOf(navArgument("coin") { type = NavType.StringType })) {
+                    StelCoinScreen(vm, nav, it.arguments?.getString("coin").orEmpty())
+                }
+                composable(Routes.STEL_SEND, arguments = listOf(navArgument("coin") { type = NavType.StringType })) {
+                    StelSendScreen(vm, nav, it.arguments?.getString("coin").orEmpty())
+                }
             }
         }
         if (route in tabs.map { it.route }) BottomBar(nav, route)

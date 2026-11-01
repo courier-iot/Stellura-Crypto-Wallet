@@ -1,0 +1,24 @@
+Stellarite Miner 12.1.0
+Synced 2026-11-01
+c9e700d157c1bd3949c3a03f912a4299d5a631a5902944787422fcb85f5132b9  ./main/java/com/example/stellariteminer/Coin.kt
+0127e7fe99f505da14c6e188f87bbcbd2b9b84fb62c3f7f40c7eb9c8c2d71ec8  ./main/java/com/example/stellariteminer/CoinProfile.kt
+cb9063a638ee5d0d0e62b1fef55ad159c474efc9e28b9d50df823413c4468c13  ./main/java/com/example/stellariteminer/Escape.kt
+b0817cf2039aa1a959bd4cb3d06d329325abf18945cde3a22582294b60bcea6e  ./main/java/com/example/stellariteminer/Format.kt
+b22406892e406407136d21575e83cd443cad35811b5b5050bb33ffc9ee562a55  ./main/java/com/example/stellariteminer/Job.kt
+efb1f5efa97632ddfb825be8daf4eb0c115dd645f49f71ac032a4c0b1cd92e08  ./main/java/com/example/stellariteminer/Ledger.kt
+c4c8f9ee95250e6509915d23cc9b17d4889dd4b0332cbecca39619ff30b7af41  ./main/java/com/example/stellariteminer/MiningEngine.kt
+a0bd86a2e88fe063f27c46deb952d39ab7917bda34bbc50ae7c30115f73120a3  ./main/java/com/example/stellariteminer/NebuliteClient.kt
+1cc78f45cde96a2c751372277b8edc9fd226ec94b52d7a09ed53d3871a5d523c  ./main/java/com/example/stellariteminer/NodeClient.kt
+ef6d8b8e2a595b440549e7a302fdff15d81be8d7d58ef1f423457bae48cc5f1e  ./main/java/com/example/stellariteminer/NodeFinder.kt
+f17d37d8e1047d4a37c668ee6c7051c30c691c7de40c946c261f657ed966372d  ./main/java/com/example/stellariteminer/RouteOptimizer.kt
+a2264778dbf313d2fade053685f882d78465d7e6c0ad1d3bd23fa64b19ddf1ac  ./main/java/com/example/stellariteminer/Scouts.kt
+343b6128634a99bdc142279fca586bbb39c01f4b74ee3b6e21d8494365f18a9d  ./main/java/com/example/stellariteminer/SoloBackend.kt
+f35cc90f5f462159bb7f05cc847b1b2dae9ba574bd7ac535098f369f4f0e069a  ./main/java/com/example/stellariteminer/SoloChain.kt
+b2036371da91d4c52947e5d2aa7616322f6a3a656a5bd21e2e22f793ece623e9  ./main/java/com/example/stellariteminer/SoloData.kt
+66ab55d46cf95ce25f9b43de19501c9f0b1798eff4f9b8e3660ef942fc28c711  ./main/java/com/example/stellariteminer/StarField.kt
+abbef69f54bc7bc4062ceb44a3993f9f49e4ce00ac8f3208379d700ab035f22b  ./main/java/com/example/stellariteminer/StratumClient.kt
+04d27d7afc3d41fc68000bbc365bb806c41f223190e12203445307611652bc14  ./main/java/com/example/stellariteminer/StratumMath.kt
+9cd26543099e3a3283897bb2c9909438a7b789ac8aa86e785c05d3872ecfdb30  ./main/java/com/example/stellariteminer/Trajectory.kt
+7f3bf95a5a6c7e465d1e1cdbaa0e68bea4b01d9a4d85b9e7f5ffb37882528862  ./main/java/com/example/stellariteminer/Vsop87.kt
+c4e687baa9ce0778a0047c8426a584ee26212770620059a06bfc0d13d0088604  ./main/java/com/example/stellariteminer/Wallet.kt
+04519af4e35dcb2b5522f2e61bd672d6d13b1bac855ad0db6d65bd9a6bf8bf4e  ./main/resources/vsop87a.txt

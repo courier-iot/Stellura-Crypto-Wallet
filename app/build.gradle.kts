@@ -13,8 +13,8 @@ android {
         applicationId = "com.stellura.wallet"
         minSdk = 26          // Android 8.0+: hardware-backed Keystore, ~97% of active devices
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0-testnet"
+        versionCode = 2
+        versionName = "0.2.0-testnet"
     }
 
     buildTypes {
@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.zxing.core)
     implementation(libs.wallet.core)
+    implementation(project(":stellarite-core"))
 
     testImplementation(libs.junit)
 }

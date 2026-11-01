@@ -4,13 +4,14 @@ A self-custody crypto wallet for Android with a space/cyberpunk-corporate look (
 
 > **Pre-release, testnet only.** Every coin this build can hold is a test coin with no value. The code has not had a security audit. Do not import a recovery phrase that holds real funds.
 
-## What works in this build (0.1.0-testnet)
+## What works in this build (0.2.0-testnet)
 
 - **Onboarding:** pick a display name, then create a new wallet (12-word phrase, written down and confirmed) or import a 12/24-word phrase or restore an encrypted `.stellura` backup file.
 - **Home:** "Welcome, *name*", portfolio value, favourite coins with 7-day trend lines and 24h change, list/tile toggle, light/dark toggle, hide-balances toggle, pull to refresh.
 - **Markets:** live top 100 coins by market cap with search; star to add or remove favourites.
 - **Coin detail:** price chart with a timeframe dropdown (3y, 2y, 1y, 6m, 3m, 2m, 1m, 4w, 3w, 2w, 1w).
 - **Wallets:** Ethereum (Sepolia), Bitcoin (Testnet4) and Solana (Devnet) addresses and balances from one phrase. Receive shows a QR code and lets you copy the address. **Send** works for Sepolia ETH.
+- **Stellarite test coins (new in 0.2.0):** Pulsarite (PLSR) and Nebulite (NBLT), the learning coins from [Stellarite Miner](#stellarite-test-coins). Balances, receive, send to an address or `@name`, username claims, and a **Mine** tab.
 - **Currencies:** 75 fiat currencies, CAD by default.
 - **Security:**
   - Unlock with a 6-digit PIN, fingerprint/face, or an authenticator app (TOTP).
@@ -51,12 +52,43 @@ There is no Stellura server and no account. Your display name is cosmetic and st
   - Exchange rates: open.er-api.com.
   - Blockchains: public testnet nodes (publicnode.com, Solana devnet, mempool.space).
 
+## Stellarite test coins
+
+Pulsarite and Nebulite are learning cryptocurrencies whose mining does useful space work: star routes for Pulsarite, spacecraft trajectories for Nebulite. They run on your own nodes and have no market value, so Stellura keeps them apart from everything else:
+
+- **Their own key.** One secp256k1 key for both coins, derived from your recovery phrase at `m/44'/7827'/0'/0/0`. It's one key because scout rewards are paid to the same key's other address. The path shares nothing with the Bitcoin, Ethereum or Solana keys, and 7827 isn't a registered SLIP-44 coin type, so no other wallet derives this key. Restoring your phrase restores these coins too. The key is derived only while the app is unlocked, used to sign, and dropped.
+- **Their own section and screens.** Wallets → *Stellarite test network*. They're never counted in the portfolio total.
+- **Nodes over HTTPS only.** Set each coin's node on its card (e.g. `https://your-domain/pulsarite`), using a cloud node set up with Stellarite Miner's `DEPLOY.md`. Stellura checks that the node really is that coin's node before sending. A plain-HTTP node on your home Wi-Fi won't connect, by design.
+- **Send:** to a `plsr…`/`nblt…` address or a username, signed on the phone exactly as `wallet.py` signs, with the node's minimum fee. Confirmation uses biometrics when they're on.
+- **Usernames:** claim a free `@NAME` (a few seconds of anti-spam proof of work), or put one in the blocks you mine.
+
+### Mine tab
+
+Mines either coin with the same engine as the Stellarite Miner app. Blocks pay to your Stellarite address, so mining needs no keys and keeps running while the wallet is locked.
+
+- **Solo on this phone** (default): a chain kept on the phone, for trying it out. Nebulite escape missions you mine solo also scout your Pulsarite routes. *Push solo chain to my node* sends it to your node, which adopts it if it has more work.
+- **My node:** mine with your HTTPS node.
+- Runs as a visible foreground service with a Stop button. It pauses when the phone is hot, below 20% battery, or (by default) unplugged. You choose the number of CPU threads.
+
+**Google Play doesn't allow apps that mine cryptocurrency on the device**; it allows only apps that manage mining done elsewhere. Builds with the Mine tab are for sideloading (the CI's APK) or F-Droid-style stores. A Play Store build would have to drop the Mine tab or turn it into a remote control for a miner running elsewhere.
+
+### Keeping the engine in step
+
+`stellarite-core/` is a copy of Stellarite Miner's `android/core` module: the consensus rules, physics, mining engine and signing. `stellarite-core/SOURCE` records which release it came from. Don't edit it here. After each Stellarite release (consensus changes start new chains, and an old copy would mine blocks the nodes reject), run:
+
+```
+tools/sync-stellarite-core.sh ../stellarite-miner
+```
+
+then commit. The unit test `stellariteAddresses` pins the derivation path and the address format to an independently computed test vector.
+
 ## Project layout
 
 ```
 app/src/main/java/com/stellura/wallet/
   security/   SecureStore (Keystore vault), PinManager, TotpManager, LockManager, Biometrics
   wallet/     WalletManager (phrase + addresses), ChainClients (balances, ETH send), BackupManager, Bech32
+  stellarite/ Pulsarite/Nebulite: StelCoin, StelSettings (nodes, mining options), StelClient (node API), StelMining (service)
   data/       SettingsRepository (DataStore), PriceRepository + FxRepository, Currencies, models
   ui/         AppRoot (navigation + lock overlay), theme, components, screens/
 ```
@@ -67,11 +99,12 @@ Stack: Kotlin, Jetpack Compose (Material 3), Trust Wallet Core, OkHttp, DataStor
 
 | Build | Scope |
 |---|---|
-| 0.2 | Send for BTC and SOL. EVM chains (Polygon, Base, Arbitrum, Optimism, BNB Chain). Import any token by contract address (ERC-20, SPL). |
-| 0.3 | Price alerts (on-device background checks + notifications). Staking (ETH via liquid staking, SOL native). |
-| 0.4 | Swaps via a DEX aggregator. Buy crypto via an on-ramp partner (needs a partner account). Read-only exchange accounts (Coinbase, Kraken, Binance API keys). |
-| 0.5 | Remaining top-100 native chains (XRP, Cardano, Dogecoin, Litecoin, Tron, TON, Polkadot, Cosmos…). Custom RPC nodes / Tor. |
-| 1.0 | Independent security audit, mainnet switch, release signing, store listing. |
+| 0.2 ✓ | Stellarite test coins (Pulsarite, Nebulite): accounts, send, usernames, mining. |
+| 0.3 | Send for BTC and SOL. EVM chains (Polygon, Base, Arbitrum, Optimism, BNB Chain). Import any token by contract address (ERC-20, SPL). |
+| 0.4 | Price alerts (on-device background checks + notifications). Staking (ETH via liquid staking, SOL native). |
+| 0.5 | Swaps via a DEX aggregator. Buy crypto via an on-ramp partner (needs a partner account). Read-only exchange accounts (Coinbase, Kraken, Binance API keys). |
+| 0.6 | Remaining top-100 native chains (XRP, Cardano, Dogecoin, Litecoin, Tron, TON, Polkadot, Cosmos…). Custom RPC nodes / Tor. |
+| 1.0 | Independent security audit, mainnet switch, release signing, store listing (without on-phone mining, per Play policy). |
 
 ## Known limitations
 

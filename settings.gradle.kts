@@ -36,3 +36,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "StelluraCryptoWallet"
 include(":app")
+include(":stellarite-core")   // Pulsarite/Nebulite engine, synced from Stellarite Miner

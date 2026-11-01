@@ -12,6 +12,8 @@ import com.stellura.wallet.security.TotpManager
 import com.stellura.wallet.wallet.BackupManager
 import com.stellura.wallet.wallet.ChainClients
 import com.stellura.wallet.wallet.WalletManager
+import com.stellura.wallet.stellarite.StelClient
+import com.stellura.wallet.stellarite.StelSettings
 
 /** Simple manual dependency container; everything lives on-device, no backend. */
 class StelluraApp : Application() {
@@ -25,6 +27,8 @@ class StelluraApp : Application() {
     lateinit var backup: BackupManager; private set
     lateinit var prices: PriceRepository; private set
     lateinit var chains: ChainClients; private set
+    lateinit var stelSettings: StelSettings; private set
+    lateinit var stel: StelClient; private set
 
     override fun onCreate() {
         super.onCreate()
@@ -41,5 +45,7 @@ class StelluraApp : Application() {
         backup = BackupManager()
         prices = PriceRepository(http, FxRepository(http))
         chains = ChainClients(http)
+        stelSettings = StelSettings(this)
+        stel = StelClient(stelSettings)
     }
 }
