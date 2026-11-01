@@ -103,12 +103,16 @@ class FxRepository(private val http: OkHttpClient) {
     private var rates: Map<String, Double> = mapOf("USD" to 1.0)
     private var fetchedAt = 0L
 
-    suspend fun refresh() = mutex.withLock {
-        if (System.currentTimeMillis() - fetchedAt < 3_600_000 && rates.size > 1) return
-        runCatching {
-            val o = Http.getJson(http, "https://open.er-api.com/v6/latest/USD").jsonObject
-            rates = o["rates"]!!.jsonObject.mapValues { it.value.jsonPrimitive.double }
-            fetchedAt = System.currentTimeMillis()
+    suspend fun refresh() {
+        mutex.withLock {
+            if (System.currentTimeMillis() - fetchedAt < 3_600_000 && rates.size > 1) return
+            try {
+                val o = Http.getJson(http, "https://open.er-api.com/v6/latest/USD").jsonObject
+                rates = o["rates"]!!.jsonObject.mapValues { it.value.jsonPrimitive.double }
+                fetchedAt = System.currentTimeMillis()
+            } catch (e: Exception) {
+                // Keep the old rates; the UI falls back to USD if none have loaded.
+            }
         }
     }
 
