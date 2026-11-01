@@ -1,0 +1,49 @@
+name: Build debug APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read   # lets GITHUB_TOKEN download Trust Wallet Core from GitHub Packages
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Files uploaded through the GitHub website lose their "executable" flag.
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Unit tests
+        run: ./gradlew --no-daemon testDebugUnitTest
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          # Falls back to the built-in token; add a GPR_TOKEN secret (classic PAT, read:packages)
+          # if GitHub Packages ever refuses the built-in one.
+          GITHUB_TOKEN: ${{ secrets.GPR_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Assemble debug APK
+        run: ./gradlew --no-daemon assembleDebug
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GPR_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stellura-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 14
